@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vocab Flash</title>
+
+<style>
+
+body{
+    font-family:Arial,sans-serif;
+    background:#0b1020;
+    color:white;
+    max-width:800px;
+    margin:auto;
+    padding:20px;
+}
+
+h1{
+    text-align:center;
+}
+
+button,input,select{
+    padding:10px;
+    margin:5px;
+    border:none;
+    border-radius:8px;
+}
+
+button{
+    background:#4f46e5;
+    color:white;
+    cursor:pointer;
+}
+
+.card{
+    background:#1a2244;
+    padding:25px;
+    border-radius:15px;
+    text-align:center;
+}
+
+.progress{
+    width:100%;
+    height:25px;
+    background:#444;
+    border:2px solid white;
+    border-radius:20px;
+    overflow:hidden;
+    margin:20px 0;
+}
+
+#bar{
+    height:100%;
+    width:0%;
+    background:limegreen;
+    transition:0.5s;
+}
+
+#question{
+    font-size:32px;
+    font-weight:bold;
+    margin:20px;
+}
+
+#result{
+    min-height:30px;
+    font-size:20px;
+    font-weight:bold;
+}
+
+.stats{
+    display:flex;
+    justify-content:space-around;
+    flex-wrap:wrap;
+    margin-top:20px;
+}
+
+#reviewBtn{
+    display:none;
+}
+
+</style>
+
+</head>
+<body>
+
+<h1>🎴 Vocabulario 1º ESO NOBELIS</h1>
+
+<select id="unitSelect">
+   <option value="6">Unit 6</option>
+ 
+<option value="7">Unit 7</option>
+<option value="6-7">Units 6-7</option>
+ 
+<option value="8">Unit 8</option>
+<option value="6-8">Units 6-8</option>
+ 
+<option value="9">Unit 9</option>
+<option value="6-9">Units 6-9</option>
+ 
+<option value="10">Unit 10</option>
+ 
+<option value="all">Units 6-10</option>
+</select>
+
+<select id="direction">
+    <option value="EN_ES">English → Spanish</option>
+    <option value="ES_EN">Spanish → English</option>
+</select>
+
+<button onclick="startGame()">
+🚀 Empezar
+</button>
+
+<div class="progress">
+    <div id="bar"></div>
+</div>
+
+<p>
+Progreso:
+<span id="progressText">0%</span>
+</p>
+
+<p>
+Pregunta:
+<span id="questionCounter">0 de 0</span>
+</p>
+
+<div class="card">
+
+<div id="question">
+Pulsa Empezar
+</div>
+
+<input id="answer" placeholder="Escribe aquí">
+
+<button onclick="checkAnswer()">
+✅ Comprobar
+</button>
+
+<div id="result"></div>
+
+<div class="stats">
+
+<div>
+⭐ Puntos:
+<span id="score">0</span>
+</div>
+
+<div>
+🔥 Racha:
+<span id="streak">0</span>
+</div>
+
+<div>
+🏆 Récord:
+<span id="record">0</span>
+</div>
+
+</div>
+
+<h2 id="medal">
+🥉
+</h2>
+
+<button id="reviewBtn" onclick="reviewErrors()">
+🔄 Repasar errores
+</button>
+
+</div>
+
+<script>
+
+const units = {
+ 
+6:[
+
+    {q:"crowds",a:"multitudes"},
+    {q:"graffiti",a:"grafitis"},
+    {q:"green spaces",a:"zonas verdes"},
+    {q:"pollution",a:"contaminación"},
+    {q:"power cut",a:"corte de luz"},
+    {q:"public transport",a:"transporte público"},
+    {q:"rubbish",a:"basura"},
+    {q:"rush hour",a:"hora punta"},
+    {q:"traffic jam",a:"atasco"},
+
+    {q:"apartment building",a:"bloque de apartamentos"},
+    {q:"bus stop",a:"parada de autobús"},
+    {q:"pedestrian crossing",a:"paso de peatones"},
+    {q:"post box",a:"buzón"},
+    {q:"recycling bin",a:"contenedor de reciclaje"},
+    {q:"road sign",a:"señal de tráfico"},
+    {q:"speed limit",a:"límite de velocidad"},
+    {q:"taxi rank",a:"parada de taxis"}
+
+],
+
+7:[
+
+    {q:"be (someone's) fault",a:"ser culpa de alguien"},
+    {q:"be annoyed (with somebody)",a:"estar molesto con alguien"},
+    {q:"be on your own",a:"estar solo"},
+    {q:"be wrong",a:"estar equivocado"},
+    {q:"do (someone) a favour",a:"hacer un favor"},
+    {q:"do something",a:"hacer algo"},
+    {q:"have (something) in common",a:"tener algo en común"},
+    {q:"have an argument",a:"discutir"},
+    {q:"have fun",a:"divertirse"},
+    {q:"have problems with somebody",a:"tener problemas con alguien"},
+    {q:"make angry",a:"enfadar"},
+    {q:"make friends",a:"hacer amigos"},
+
+    {q:"come round",a:"visitar"},
+    {q:"fall out (with)",a:"discutir con"},
+    {q:"get on",a:"llevarse bien"},
+    {q:"get together",a:"reunirse"},
+    {q:"hang out",a:"pasar el rato"},
+    {q:"look after",a:"cuidar"},
+    {q:"make up",a:"reconciliarse"},
+    {q:"split up",a:"romper una relación"}
+
+],
+
+8:[
+
+    {q:"baggage",a:"equipaje"},
+    {q:"baggage hall",a:"sala de recogida de equipajes"},
+    {q:"boarding pass",a:"tarjeta de embarque"},
+    {q:"check-in desk",a:"mostrador de facturación"},
+    {q:"customs",a:"aduana"},
+    {q:"departure gate",a:"puerta de embarque"},
+    {q:"passport",a:"pasaporte"},
+    {q:"passport control",a:"control de pasaportes"},
+    {q:"queue",a:"cola"},
+    {q:"security check",a:"control de seguridad"},
+    {q:"sign",a:"señal"},
+
+    {q:"coach",a:"autocar / entrenador"},
+    {q:"exercise",a:"ejercicio físico / ejercicio escrito"},
+    {q:"fit",a:"estar en forma / encajar"},
+    {q:"match",a:"partido / coincidir"},
+    {q:"point",a:"punto / señalar"},
+    {q:"train",a:"tren / entrenar"},
+    {q:"trainer",a:"zapatilla deportiva / entrenador"},
+    {q:"work out",a:"hacer ejercicio / resolver"}
+
+],
+
+9:[
+
+    {q:"bank account",a:"cuenta bancaria"},
+    {q:"change",a:"cambio"},
+    {q:"checkout",a:"caja"},
+    {q:"give away",a:"regalar"},
+    {q:"price",a:"precio"},
+    {q:"receipt",a:"recibo"},
+    {q:"save up",a:"ahorrar"},
+    {q:"special offer",a:"oferta especial"},
+    {q:"take back",a:"devolver"},
+
+    {q:"check in",a:"facturar"},
+    {q:"get back",a:"volver"},
+    {q:"get in",a:"entrar"},
+    {q:"go away",a:"marcharse"},
+    {q:"look around",a:"mirar alrededor"},
+    {q:"pick up",a:"recoger"},
+    {q:"set off",a:"salir de viaje"},
+    {q:"take off",a:"despegar"},
+
+    {q:"charge (noun)",a:"cargo, tarifa"},
+    {q:"charge (verb)",a:"cobrar"},
+    {q:"cost (noun)",a:"coste"},
+    {q:"cost (verb)",a:"costar"},
+    {q:"pay (noun)",a:"sueldo, salario"},
+    {q:"pay (verb)",a:"pagar"}
+
+],
+10:[
+
+    {q:"bitter",a:"amargo"},
+    {q:"delicious",a:"delicioso"},
+    {q:"disgusting",a:"asqueroso"},
+    {q:"fresh",a:"fresco"},
+    {q:"frozen",a:"congelado"},
+    {q:"horrible",a:"horrible"},
+    {q:"juicy",a:"jugoso"},
+    {q:"raw",a:"crudo"},
+    {q:"sour",a:"agrio"},
+    {q:"spicy",a:"picante"},
+    {q:"sweet",a:"dulce"},
+    {q:"tasty",a:"sabroso"},
+
+    {q:"look",a:"parecer"},
+    {q:"smell",a:"oler"},
+    {q:"taste",a:"saber a"}
+
+],
+
+};
+
+let deck=[];
+let current=0;
+let score=0;
+let streak=0;
+let errors=[];
+
+function shuffle(array){
+
+    for(let i=array.length-1;i>0;i--){
+
+        const j=
+        Math.floor(Math.random()*(i+1));
+
+        [array[i],array[j]]=
+        [array[j],array[i]];
+    }
+
+    return array;
+}
+
+function startGame(){
+
+    const selected =
+    document.getElementById("unitSelect").value;
+
+    const direction =
+    document.getElementById("direction").value;
+
+    let source=[];
+
+if(selected==="6-7"){
+
+    source=[
+        ...units[6],
+        ...units[7]
+    ];
+
+}
+else if(selected==="6-8"){
+
+    source=[
+        ...units[6],
+        ...units[7],
+        ...units[8]
+    ];
+
+}
+else if(selected==="6-9"){
+
+    source=[
+        ...units[6],
+        ...units[7],
+        ...units[8],
+        ...units[9]
+    ];
+
+}
+else if(selected==="all"){
+
+    source=[
+        ...units[6],
+        ...units[7],
+        ...units[8],
+        ...units[9],
+        ...units[10]
+    ];
+
+}
+else{
+
+    source=[
+        ...units[selected]
+    ];
+
+}
+
+    deck=[];
+
+    source.forEach(card=>{
+
+        if(direction==="EN_ES"){
+
+            deck.push({
+                q:card.q,
+                a:card.a
+            });
+
+        }else{
+
+            deck.push({
+                q:card.a,
+                a:card.q
+            });
+
+        }
+
+    });
+
+    shuffle(deck);
+
+deck = deck.slice(0,10);
+
+    current=0;
+    score=0;
+    streak=0;
+    errors=[];
+
+    document.getElementById("score").textContent="0";
+    document.getElementById("streak").textContent="0";
+
+    document.getElementById("reviewBtn").style.display="none";
+
+    showCard();
+}
+
+function showCard(){
+
+    if(current>=deck.length){
+
+        finishGame();
+        return;
+    }
+
+    document.getElementById("question").textContent=
+    deck[current].q;
+
+    document.getElementById("answer").value="";
+
+    document.getElementById("result").textContent="";
+
+    const percent=
+    (current/deck.length)*100;
+
+    document.getElementById("bar").style.width=
+    percent+"%";
+
+    document.getElementById("progressText").textContent=
+    Math.round(percent)+"%";
+
+    document.getElementById("questionCounter").textContent=
+    (current+1)+" de "+deck.length;
+}
+
+function checkAnswer(){
+
+    const user=
+    document.getElementById("answer")
+    .value
+    .trim()
+    .toLowerCase();
+
+    const correct=
+    deck[current].a.toLowerCase();
+
+    if(user===correct){
+
+        score+=10;
+        streak++;
+
+        document.getElementById("result").textContent=
+        "✅ Correcto";
+
+    }else{
+
+        streak=0;
+
+        errors.push(deck[current]);
+
+        document.getElementById("result").textContent=
+        "❌ Correcta: "+deck[current].a;
+    }
+
+    document.getElementById("score").textContent=
+    score;
+
+    document.getElementById("streak").textContent=
+    streak;
+
+    updateMedal();
+
+    current++;
+
+    setTimeout(showCard,1000);
+}
+
+function updateMedal(){
+
+    let medal="🥉";
+
+    if(score>=20){
+        medal="🥇";
+    }
+    else if(score>=10){
+        medal="🥈";
+    }
+
+    document.getElementById("medal").textContent=
+    medal;
+}
+
+function finishGame(){
+
+    document.getElementById("question").textContent=
+    "🎉 Juego terminado";
+
+    document.getElementById("bar").style.width=
+    "100%";
+
+    document.getElementById("progressText").textContent=
+    "100%";
+
+    document.getElementById("questionCounter").textContent=
+    deck.length+" de "+deck.length;
+
+    let best=
+    localStorage.getItem("record");
+
+    if(!best || score>Number(best)){
+
+        localStorage.setItem(
+            "record",
+            score
+        );
+
+        best=score;
+    }
+
+    document.getElementById("record").textContent=
+    best;
+
+    if(errors.length>0){
+
+        document.getElementById("reviewBtn")
+        .style.display="inline-block";
+    }
+}
+
+function reviewErrors(){
+
+    deck=[...errors];
+
+    errors=[];
+
+    current=0;
+
+    document.getElementById("reviewBtn")
+    .style.display="none";
+
+    showCard();
+}
+
+document.getElementById("answer")
+.addEventListener("keydown",function(e){
+
+    if(e.key==="Enter"){
+        checkAnswer();
+    }
+
+});
+
+const saved=
+localStorage.getItem("record");
+
+if(saved){
+
+    document.getElementById("record")
+    .textContent=saved;
+}
+
+</script>
+
+</body>
+</html>
